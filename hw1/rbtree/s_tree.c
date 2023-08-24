@@ -302,6 +302,7 @@ void st_remove(struct st_node **root, struct st_node *del)
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define container_of(ptr, type, member) \
     ((type *) ((char *) (ptr) - (offsetof(type, member))))
@@ -313,7 +314,7 @@ struct treeint {
     struct st_node st_n;
 };
 
-static struct st_root *tree;
+struct st_root *tree;
 
 int treeint_init()
 {
@@ -322,7 +323,7 @@ int treeint_init()
     return 0;
 }
 
-static void __treeint_destroy(struct st_node *n)
+void __treeint_destroy(struct st_node *n)
 {
     if (st_left(n))
         __treeint_destroy(st_left(n));
@@ -403,7 +404,7 @@ int treeint_remove(int a)
 }
 
 /* ascending order */
-static void __treeint_dump(struct st_node *n, int depth)
+void __treeint_dump(struct st_node *n, int depth)
 {
     if (!n)
         return;
@@ -411,7 +412,7 @@ static void __treeint_dump(struct st_node *n, int depth)
     __treeint_dump(st_left(n), depth + 1);
 
     struct treeint *v = treeint_entry(n);
-    printf("%d\n", v->value);
+    printf("depth: %d    value:%d\n", depth, v->value);
 
     __treeint_dump(st_right(n), depth + 1);
 }
@@ -421,30 +422,81 @@ void treeint_dump()
     __treeint_dump(st_root(tree), 0);
 }
 
+//test program
+#include <sys/time.h>
+#define TEST_SIZE 1000000
+// time(us)
+struct  timeval start, end;
+unsigned long diff;
+#define MEASURET_START \
+        gettimeofday(&start,NULL);
+#define MEASURET_END \
+        gettimeofday(&end,NULL); \
+        diff = 1000000 * (end.tv_sec-start.tv_sec)+ end.tv_usec-start.tv_usec; \
+
 int main()
 {
+    // generate random number
+    bool tag[TEST_SIZE] = {0};
+    int data[TEST_SIZE]; 
     srand(time(0));
+    for(int i = 0; i < TEST_SIZE; ++i){
+        int number = rand() % TEST_SIZE;
+        if(tag[number] == false){
+            data[i] = number;
+            tag[number] = true;
+        }
+        else
+            i--;
+    }
 
+    // initial tree
     treeint_init();
 
-    for (int i = 0; i < 100; ++i)
-        treeint_insert(rand() % 99);
+    // measure insert
+	MEASURET_START
+    for (int i = 0; i < TEST_SIZE; ++i)
+        treeint_insert(data[i]);
+    MEASURET_END
+    printf("rb insert:%ld\n", diff);
 
-    printf("[ After insertions ]\n");
-    treeint_dump();
-
-    printf("Removing...\n");
-    for (int i = 0; i < 100; ++i) {
-        int v = rand() % 99;
-        printf("%2d  ", v);
-        if ((i + 1) % 10 == 0)
-            printf("\n");
-        treeint_remove(v);
+	// generate random number
+    srand(time(0));
+    for(int i = 0; i < TEST_SIZE; ++i){
+        int number = rand() % TEST_SIZE;
+        if(tag[number] == true){
+            data[i] = number;
+            tag[number] = false;
+        }
+        else
+            i--;
     }
-    printf("\n");
+    
+	// measure find
+	MEASURET_START
+    for (int i = 0; i < TEST_SIZE; ++i)
+        treeint_find(data[i]);
+    MEASURET_END
+    printf("rb find  :%ld\n", diff);
 
-    printf("[ After removals ]\n");
-    treeint_dump();
+	// generate random number
+    srand(time(0));
+    for(int i = 0; i < TEST_SIZE; ++i){
+        int number = rand() % TEST_SIZE;
+        if(tag[number] == false){
+            data[i] = number;
+            tag[number] = true;
+        }
+        else
+            i--;
+    }
+
+	// measure remove
+	MEASURET_START
+    for (int i = 0; i < TEST_SIZE; ++i)
+        treeint_remove(data[i]);
+    MEASURET_END
+    printf("rb remove:%ld\n", diff);
 
     treeint_destroy();
 
