@@ -648,7 +648,6 @@ void treeint_dump()
 
 // test program
 #include <sys/time.h>
-#define TEST_SIZE 1000000
 // time(us)
 struct  timeval start, end;
 unsigned long diff;
@@ -658,14 +657,18 @@ unsigned long diff;
         gettimeofday(&end,NULL); \
         diff = 1000000 * (end.tv_sec-start.tv_sec)+ end.tv_usec-start.tv_usec; \
 
-int main()
+int main(int argc, char *argv[])
 {
+    int test_size = atoi(argv[1]);
+    bool tag[test_size];
+    int data[test_size]; 
+    for(int i = 0; i < test_size; ++i)
+        tag[i] = 0;
+
     // generate random number
-    bool tag[TEST_SIZE] = {0};
-    int data[TEST_SIZE]; 
     srand(time(0));
-    for(int i = 0; i < TEST_SIZE; ++i){
-        int number = rand() % TEST_SIZE;
+    for(int i = 0; i < test_size; ++i){
+        int number = rand() % test_size;
         if(tag[number] == false){
             data[i] = number;
             tag[number] = true;
@@ -679,15 +682,15 @@ int main()
 
     // measure insert
 	MEASURET_START
-    for (int i = 0; i < TEST_SIZE; ++i)
+    for (int i = 0; i < test_size; ++i)
         treeint_insert(data[i]);
     MEASURET_END
     printf("rb insert:%ld\n", diff);
 
 	// generate random number
     srand(time(0));
-    for(int i = 0; i < TEST_SIZE; ++i){
-        int number = rand() % TEST_SIZE;
+    for(int i = 0; i < test_size; ++i){
+        int number = rand() % test_size;
         if(tag[number] == true){
             data[i] = number;
             tag[number] = false;
@@ -698,15 +701,15 @@ int main()
     
 	// measure find
 	MEASURET_START
-    for (int i = 0; i < TEST_SIZE; ++i)
+    for (int i = 0; i < test_size; ++i)
         treeint_find(data[i]);
     MEASURET_END
     printf("rb find  :%ld\n", diff);
 
 	// generate random number
     srand(time(0));
-    for(int i = 0; i < TEST_SIZE; ++i){
-        int number = rand() % TEST_SIZE;
+    for(int i = 0; i < test_size; ++i){
+        int number = rand() % test_size;
         if(tag[number] == false){
             data[i] = number;
             tag[number] = true;
@@ -717,7 +720,7 @@ int main()
 
 	// measure remove
 	MEASURET_START
-    for (int i = 0; i < TEST_SIZE; ++i)
+    for (int i = 0; i < test_size; ++i)
         treeint_remove(data[i]);
     MEASURET_END
     printf("rb remove:%ld\n", diff);
