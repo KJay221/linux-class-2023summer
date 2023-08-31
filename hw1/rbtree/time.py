@@ -6,7 +6,7 @@ rb_insert, rb_find, rb_remove, st_insert, st_find, st_remove, time = [], [], [],
 
 if __name__ == "__main__":
     os.system("gcc rb_tree.c")
-    for i in range(100000, 1000001, 100000):
+    for i in range(100, 1000001, 100):
         time.append(i)
         output = subprocess.run(["./a.out", str(i)], capture_output=True, text=True)
         lines = output.stdout.split("\n")
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         rb_remove.append(int(lines[2].split(":")[1]))
     
     os.system("gcc s_tree.c")
-    for i in range(100000, 1000001, 100000):
+    for i in range(100, 1000001, 100):
         output = subprocess.run(["./a.out", str(i)], capture_output=True, text=True)
         lines = output.stdout.split("\n")
         st_insert.append(int(lines[0].split(":")[1]))
